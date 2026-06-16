@@ -7,20 +7,27 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the 8x8 Chess Board.
+ * Manages the state of active chess pieces, move history, and core chess mechanics 
+ * (valid move checks, check/checkmate logic, en passant, and drawing of coordinates).
+ */
 public class Board extends JPanel {
 
-    public static final int TILE_SIZE = 85;
+    public static final int TILE_SIZE = 75;
     public static final int COLS = 8;
     public static final int ROWS = 8;
 
     private final List<Piece> pieceList = new ArrayList<>();
+    private final List<Move> moveHistory = new ArrayList<>();
     private Piece selectedPiece;
     private int enPassantTile = -1;
+    private boolean isFlipped = false;
 
-    private static final Color LIGHT = new Color(240, 217, 181);
-    private static final Color DARK = new Color(181, 136, 99);
-    private static final Color HIGHLIGHT = new Color(101, 242, 248, 170);
-    private static final Color LAST_MOVE = new Color(255, 255, 100, 100);
+    private static final Color LIGHT = new Color(230, 227, 204);
+    private static final Color DARK = new Color(162, 161, 140);
+    private static final Color HIGHLIGHT = new Color(176, 207, 173, 100);
+    private static final Color LAST_MOVE = new Color(176, 207, 173, 150);
 
     private Move lastMove;
 
@@ -34,31 +41,44 @@ public class Board extends JPanel {
      */
     public Board() {
         initComponents();
-        this.setPreferredSize(new Dimension(COLS * TILE_SIZE, ROWS * TILE_SIZE));
+        Dimension size = new Dimension(COLS * TILE_SIZE, ROWS * TILE_SIZE);
+        this.setPreferredSize(size);
+        this.setMinimumSize(size);
+        this.setMaximumSize(size);
         addPieces();
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 680, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 680, Short.MAX_VALUE)
-        );
-    }// </editor-fold>                        
+        setLayout(null);
+    }                        
 
     public int getTileSize() { return TILE_SIZE; }
     public int getEnPassantTile() { return enPassantTile; }
     public Piece getSelectedPiece() { return selectedPiece; }
     public void setSelectedPiece(Piece piece) { this.selectedPiece = piece; }
     public List<Piece> getPieceList() { return pieceList; }
+    public List<Move> getMoveHistory() { return moveHistory; }
+
+    public boolean isFlipped() { return isFlipped; }
+    public void setFlipped(boolean flipped) { this.isFlipped = flipped; }
+
+    public int getScreenX(int col) {
+        return isFlipped ? (7 - col) * TILE_SIZE : col * TILE_SIZE;
+    }
+
+    public int getScreenY(int row) {
+        return isFlipped ? (7 - row) * TILE_SIZE : row * TILE_SIZE;
+    }
+
+    public int getBoardCol(int screenX) {
+        int col = screenX / TILE_SIZE;
+        return isFlipped ? 7 - col : col;
+    }
+
+    public int getBoardRow(int screenY) {
+        int row = screenY / TILE_SIZE;
+        return isFlipped ? 7 - row : row;
+    }
 
     public Piece getPiece(int col, int row) {
         for (Piece piece : pieceList) {
@@ -87,7 +107,13 @@ public class Board extends JPanel {
         return row * ROWS + col;
     }
 
+    /**
+     * Determines whether a move is legal according to chess rules.
+     * Checks team collisions, specific piece movement rules, path obstructions,
+     * out of bounds, and check prevention.
+     */
     public boolean isValidMove(Move move) {
+        if (move.newCol < 0 || move.newCol >= COLS || move.newRow < 0 || move.newRow >= ROWS) return false;
         if (sameTeam(move.piece, move.captured)) return false;
         if (!move.piece.canMove(move.newCol, move.newRow)) return false;
         if (move.piece.isPathBlocked(move.newCol, move.newRow)) return false;
@@ -96,6 +122,11 @@ public class Board extends JPanel {
     }
 
     // check detection (was in CheckScanner)
+    /**
+     * Checks if the player's King is in check after simulating a move.
+     * Computes vectors of attack (lines of sight, Knight spots, Pawn captures) 
+     * to determine if the King's coordinate is attacked.
+     */
     public boolean isKingInCheck(Move move) {
         currentKing = findKing(move.piece.isWhite);
         if (currentKing == null) return false;
@@ -122,6 +153,7 @@ public class Board extends JPanel {
         for (int i = 1; i < 8; i++) {
             int c = kingCol + i * colDir;
             int r = kingRow + i * rowDir;
+            if (c < 0 || c >= COLS || r < 0 || r >= ROWS) break;
             if (c == moveCol && r == moveRow) break;
 
             Piece p = getPiece(c, r);
@@ -184,8 +216,10 @@ public class Board extends JPanel {
             move.piece.yPos = move.newRow * TILE_SIZE;
             move.piece.isFirstMove = false;
             capturePiece(move.captured);
+            enPassantTile = -1;
         }
         lastMove = move;
+        moveHistory.add(move);
     }
 
     private void movePawn(Move move) {
@@ -256,6 +290,7 @@ public class Board extends JPanel {
         selectedPiece = null;
         enPassantTile = -1;
         lastMove = null;
+        moveHistory.clear();
         addPieces();
         repaint();
     }
@@ -276,8 +311,8 @@ public class Board extends JPanel {
 
         if (lastMove != null) {
             g2.setColor(LAST_MOVE);
-            g2.fillRect(lastMove.oldCol * TILE_SIZE, lastMove.oldRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            g2.fillRect(lastMove.newCol * TILE_SIZE, lastMove.newRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            g2.fillRect(getScreenX(lastMove.oldCol), getScreenY(lastMove.oldRow), TILE_SIZE, TILE_SIZE);
+            g2.fillRect(getScreenX(lastMove.newCol), getScreenY(lastMove.newRow), TILE_SIZE, TILE_SIZE);
         }
 
         if (selectedPiece != null) {
@@ -290,24 +325,16 @@ public class Board extends JPanel {
                         int offset = (TILE_SIZE - circleSize) / 2;
                         if (testMove.captured != null) {
                             g2.setStroke(new BasicStroke(3));
-                            g2.drawOval(c * TILE_SIZE + 4, r * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+                            g2.drawOval(getScreenX(c) + 4, getScreenY(r) + 4, TILE_SIZE - 8, TILE_SIZE - 8);
                         } else {
-                            g2.fillOval(c * TILE_SIZE + offset, r * TILE_SIZE + offset, circleSize, circleSize);
+                            g2.fillOval(getScreenX(c) + offset, getScreenY(r) + offset, circleSize, circleSize);
                         }
                     }
                 }
             }
         }
 
-        g2.setFont(new Font("SansSerif", Font.BOLD, 12));
-        for (int c = 0; c < COLS; c++) {
-            g2.setColor(c % 2 == 0 ? DARK : LIGHT);
-            g2.drawString(String.valueOf((char) ('a' + c)), c * TILE_SIZE + TILE_SIZE - 14, ROWS * TILE_SIZE - 4);
-        }
-        for (int r = 0; r < ROWS; r++) {
-            g2.setColor(r % 2 == 0 ? DARK : LIGHT);
-            g2.drawString(String.valueOf(8 - r), 3, r * TILE_SIZE + 15);
-        }
+        // Coordinates drawing is removed from here since it is drawn on the board's wrapper panels.
 
         for (Piece piece : pieceList) {
             if (piece != selectedPiece) {

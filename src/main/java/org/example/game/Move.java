@@ -4,13 +4,13 @@ import org.example.game.pieces.Piece;
 
 public class Move {
 
-    int oldCol;
-    int oldRow;
-    int newCol;
-    int newRow;
+    public int oldCol;
+    public int oldRow;
+    public int newCol;
+    public int newRow;
 
-    Piece piece;
-    Piece captured;
+    public Piece piece;
+    public Piece captured;
 
     public Move(Board board, Piece piece, int newCol, int newRow) {
         this.oldCol = piece.col;

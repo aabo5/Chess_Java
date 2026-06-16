@@ -8,6 +8,11 @@ import org.example.ui.StartScreen;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Main application entry point for the Chess Online client.
+ * Sets up the JFrame container, configures the CardLayout screens,
+ * and handles the transitions and connection logic between screen components.
+ */
 public class Main {
 
     private JFrame frame;
@@ -20,9 +25,13 @@ public class Main {
 
     private Client client;
 
+    /**
+     * Launch the chess client application.
+     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        // <editor-fold defaultstate="collapsed" desc=" Look and feel setting code
+        // (optional) ">
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -39,7 +48,7 @@ public class Main {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
+        // </editor-fold>
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -48,6 +57,9 @@ public class Main {
         });
     }
 
+    /**
+     * Initializes and positions the UI frame, card container, and screen views.
+     */
     private void start() {
         frame = new JFrame("Chess Online");
         frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -62,12 +74,24 @@ public class Main {
 
         cardPanel.add(startScreen, "START");
         cardPanel.add(gamePanel, "GAME");
-        cardPanel.add(endScreen,  "END");
+        cardPanel.add(endScreen, "END");
 
         startScreen.setStartListener(new StartScreen.StartListener() {
             @Override
-            public void onHostGame() {
-                connectToServer("localhost", 5000);
+            public void onHostGame(int port) {
+                // Spin up a server thread on target port in background
+                new Thread(() -> {
+                    try {
+                        new org.example.network.Server().start(port);
+                    } catch (Exception e) {
+                        System.out.println("Host server thread error: " + e.getMessage());
+                    }
+                }).start();
+
+                // Give the server socket a moment to bind
+                try { Thread.sleep(200); } catch (InterruptedException e) {}
+
+                connectToServer("localhost", port);
             }
 
             @Override
@@ -82,13 +106,19 @@ public class Main {
             }
         });
 
-        frame.setContentPane(cardPanel);
+        org.example.ui.CRTPanel crtWrapper = new org.example.ui.CRTPanel(new BorderLayout());
+        crtWrapper.add(cardPanel, BorderLayout.CENTER);
+        crtWrapper.setPreferredSize(new Dimension(920, 780));
+        frame.setContentPane(crtWrapper);
         frame.pack();
-        frame.setMinimumSize(new Dimension(700, 750));
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
+    /**
+     * Establishes a socket connection to the server on the target port,
+     * wires up client event listeners, and transitions to the main gameplay screen.
+     */
     private void connectToServer(String host, int port) {
         // establish socket connection to AWS server
         cardLayout.show(cardPanel, "GAME");
@@ -102,6 +132,8 @@ public class Main {
             public void onColorAssigned(boolean isWhite) {
                 SwingUtilities.invokeLater(() -> {
                     gamePanel.getGameManager().setPlayerColor(isWhite);
+                    gamePanel.getBoard().setFlipped(!isWhite);
+                    gamePanel.updateNotation(isWhite);
                     gamePanel.setStatus("You are " + (isWhite ? "White" : "Black"));
                 });
             }
@@ -144,6 +176,8 @@ public class Main {
             public void onReset() {
                 SwingUtilities.invokeLater(() -> {
                     gamePanel.getGameManager().reset();
+                    gamePanel.getBoard().setFlipped(!gamePanel.getGameManager().isPlayerWhite());
+                    gamePanel.updateNotation(gamePanel.getGameManager().isPlayerWhite());
                     cardLayout.show(cardPanel, "GAME");
                     if (gamePanel.getGameManager().isMyTurn()) {
                         gamePanel.setStatus("New game! Your turn");
@@ -156,9 +190,18 @@ public class Main {
             @Override
             public void onDisconnected() {
                 SwingUtilities.invokeLater(() -> {
+                    String msg;
+                    if (client.isProtocolError()) {
+                        msg = "Connected to a non-chess server.\n" +
+                              "Please free the port, or change the Port field to a different value (e.g. 5001).";
+                    } else if (client.isConnected()) {
+                        msg = "Lost connection to server.";
+                    } else {
+                        msg = "Could not connect to server.";
+                    }
                     JOptionPane.showMessageDialog(frame,
-                        "Lost connection to server.",
-                        "Disconnected", JOptionPane.WARNING_MESSAGE);
+                            msg,
+                            "Disconnected", JOptionPane.WARNING_MESSAGE);
                     cardLayout.show(cardPanel, "START");
                 });
             }

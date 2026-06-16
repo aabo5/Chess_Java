@@ -4,6 +4,11 @@ import org.example.game.pieces.Piece;
 import org.example.network.Client;
 import javax.swing.*;
 
+/**
+ * Manages the high-level flow of a chess game match.
+ * Enforces player turns, receives local and remote moves, validates them,
+ * triggers board state updates, and detects game ending conditions (checkmate/stalemate).
+ */
 public class GameManager {
 
     private final Board board;

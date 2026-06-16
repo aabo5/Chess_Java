@@ -1,14 +1,14 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package org.example.ui;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
- *
- * @author Acer
+ * Game Over End Screen UI.
+ * Displays the final game result (checkmate winner/stalemate draw), status updates,
+ * and a rematch "PLAY AGAIN" button inside a dynamic centered terminal box.
  */
-public class EndScreen extends javax.swing.JPanel {
+public class EndScreen extends JPanel {
 
     public interface EndListener {
         void onPlayAgain();
@@ -16,9 +16,12 @@ public class EndScreen extends javax.swing.JPanel {
 
     private EndListener listener;
 
-    /**
-     * Creates new form EndScreen
-     */
+    private JLabel crownLabel;
+    private JLabel gameOverLabel;
+    private JLabel resultLabel;
+    private JLabel statusLabel;
+    private RetroButton playAgainButton;
+
     public EndScreen() {
         initComponents();
     }
@@ -27,114 +30,119 @@ public class EndScreen extends javax.swing.JPanel {
         this.listener = listener;
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
-
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-
-        setBackground(new java.awt.Color(40, 40, 40));
-        setPreferredSize(new java.awt.Dimension(680, 720));
+        setBackground(new Color(16, 20, 21)); // background `#101415`
+        setPreferredSize(new Dimension(680, 720));
         setLayout(null);
 
-        jLabel1.setFont(new java.awt.Font("Serif", 0, 80)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(255, 215, 0));
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("\u265B");
-        add(jLabel1);
-        jLabel1.setBounds(190, 120, 300, 100);
+        // Fonts
+        Font headerFont = FontManager.getHeaderFont(32f);
+        Font resultFont = FontManager.getHeaderFont(24f);
+        Font statusFont = FontManager.getMonoFont(Font.PLAIN, 12f);
+        Font buttonFont = FontManager.getHeaderFont(16f);
 
-        jLabel2.setFont(new java.awt.Font("SansSerif", 1, 32)); // NOI18N
-        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("Game Over");
-        add(jLabel2);
-        jLabel2.setBounds(190, 230, 300, 40);
+        // Crown Icon (Unicode)
+        crownLabel = new JLabel("♛");
+        crownLabel.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 90));
+        crownLabel.setForeground(new Color(176, 207, 173)); // primary sage green
+        crownLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        crownLabel.setBounds(190, 120, 300, 100);
+        add(crownLabel);
 
-        jLabel3.setFont(new java.awt.Font("SansSerif", 1, 24)); // NOI18N
-        jLabel3.setForeground(new java.awt.Color(255, 215, 0));
-        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel3.setText(" ");
-        add(jLabel3);
-        jLabel3.setBounds(140, 285, 400, 35);
+        // Game Over Label
+        gameOverLabel = new JLabel("GAME OVER");
+        gameOverLabel.setFont(headerFont);
+        gameOverLabel.setForeground(new Color(224, 227, 228)); // on-surface
+        gameOverLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gameOverLabel.setBounds(190, 240, 300, 40);
+        add(gameOverLabel);
 
-        jLabel4.setFont(new java.awt.Font("SansSerif", 2, 14)); // NOI18N
-        jLabel4.setForeground(java.awt.Color.gray);
-        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel4.setText(" ");
-        add(jLabel4);
-        jLabel4.setBounds(190, 330, 300, 20);
+        // Result Label
+        resultLabel = new JLabel(" ");
+        resultLabel.setFont(resultFont);
+        resultLabel.setForeground(new Color(198, 202, 165)); // secondary creamy sage
+        resultLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        resultLabel.setBounds(140, 295, 400, 35);
+        add(resultLabel);
 
-        jButton1.setFont(new java.awt.Font("SansSerif", 1, 18)); // NOI18N
-        jButton1.setText("Play Again");
-        jButton1.setFocusPainted(false);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
+        // Status Label (Waiting for opponent...)
+        statusLabel = new JLabel(" ");
+        statusLabel.setFont(statusFont);
+        statusLabel.setForeground(new Color(195, 200, 191)); // on-surface-variant
+        statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        statusLabel.setBounds(190, 345, 300, 20);
+        add(statusLabel);
+
+        // Play Again Button (RetroButton)
+        playAgainButton = new RetroButton(
+                "PLAY AGAIN",
+                new Color(176, 207, 173), // bg `#b0cfad`
+                new Color(29, 54, 30),     // fg `#1d361e`
+                new Color(29, 54, 30),
+                new Color(176, 207, 173)
+        );
+        playAgainButton.setFont(buttonFont);
+        playAgainButton.setBounds(190, 400, 300, 50);
+        playAgainButton.addActionListener(e -> {
+            statusLabel.setText("Waiting for opponent...");
+            if (listener != null) listener.onPlayAgain();
         });
-        add(jButton1);
-        jButton1.setBounds(215, 380, 250, 50);
-    }// </editor-fold>                        
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        jLabel4.setText("Waiting for opponent...");
-        if (listener != null) listener.onPlayAgain();
-    }                                        
+        add(playAgainButton);
+    }
 
     public void setResult(String result) {
-        jLabel3.setText(result);
-        jLabel4.setText(" ");
+        resultLabel.setText(result.toUpperCase());
+        statusLabel.setText(" ");
     }
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(EndScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(EndScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(EndScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(EndScreen.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                javax.swing.JFrame frame = new javax.swing.JFrame();
-                frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-                frame.getContentPane().add(new EndScreen());
-                frame.pack();
-                frame.setVisible(true);
-            }
-        });
+    @Override
+    public void doLayout() {
+        int w = getWidth();
+        int cardX = (w - 480) / 2;
+        crownLabel.setBounds(cardX + 90, 120, 300, 100);
+        gameOverLabel.setBounds(cardX + 90, 240, 300, 40);
+        resultLabel.setBounds(cardX + 40, 295, 400, 35);
+        statusLabel.setBounds(cardX + 90, 345, 300, 20);
+        playAgainButton.setBounds(cardX + 90, 400, 300, 50);
     }
 
-    // Variables declaration - do not modify                     
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    // End of variables declaration                   
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+
+        int w = getWidth();
+        int h = getHeight();
+        int cardX = (w - 480) / 2;
+
+        // 1. Draw Top Header Bar
+        g2.setColor(new Color(49, 53, 54)); // surface-container-highest
+        g2.fillRect(0, 0, w, 54);
+        g2.setColor(new Color(141, 146, 138)); // outline
+        g2.setStroke(new BasicStroke(3));
+        g2.drawLine(0, 52, w, 52);
+
+        // Header Title
+        g2.setFont(FontManager.getHeaderFont(18f));
+        g2.setColor(new Color(176, 207, 173));
+        g2.drawString("CHESS_TERMINAL_v1.0", 24, 33);
+
+        // Header Nav Badge (GAME OVER red badge)
+        g2.setColor(new Color(147, 0, 10)); // error-container `#93000a`
+        g2.fillRect(w - 140, 15, 110, 24);
+        g2.setFont(FontManager.getMonoFont(Font.BOLD, 10f));
+        g2.setColor(new Color(255, 218, 214)); // on-error-container `#ffdad6`
+        g2.drawString("GAME OVER", w - 122, 31);
+
+        // Draw central terminal card around game over details
+        g2.setColor(new Color(24, 28, 29)); // surface-container-low
+        g2.fillRect(cardX, 100, 480, 400);
+        g2.setColor(new Color(141, 146, 138)); // outline
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRect(cardX, 100, 480, 400);
+
+        g2.dispose();
+    }
 }

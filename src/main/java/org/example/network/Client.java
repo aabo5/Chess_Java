@@ -3,12 +3,29 @@ package org.example.network;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Socket client for the Chess Online application.
+ * Manages socket connection to the server, reads messages asynchronously in a background
+ * thread, parses received command tokens, and alerts UI screen listeners.
+ */
 public class Client {
 
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
     private boolean connected = false;
+    private boolean protocolError = false;
+
+    public boolean isProtocolError() { return protocolError; }
+
+    public void close() {
+        connected = false;
+        try {
+            if (socket != null) socket.close();
+        } catch (IOException e) {
+            // ignore
+        }
+    }
 
     public interface ClientListener {
         void onColorAssigned(boolean isWhite);
@@ -52,6 +69,14 @@ public class Client {
     private void handleMessage(String message) {
         // process data received from server
         System.out.println("[Client received] " + message);
+
+        String upper = message.toUpperCase();
+        if (upper.contains("<HTML") || upper.startsWith("<!DOCTYPE") || upper.startsWith("HTTP/")) {
+            System.out.println("Non-chess server detected, closing connection.");
+            protocolError = true;
+            close();
+            return;
+        }
 
         if (message.startsWith("COLOR ")) {
             boolean isWhite = message.equals("COLOR white");
