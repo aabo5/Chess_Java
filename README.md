@@ -10,15 +10,11 @@ A two-player chess game operating over a network using TCP sockets. Designed as 
 
 ## 📸 Screenshots
 
-Here is a visual overview of the game interfaces. *(Note: Place your screenshots in the `docs/` directory matching these names to display them in this document)*:
+Here is a visual overview of the game interfaces:
 
 | Start Screen / Lobby | Game Board |
 |---|---|
-| ![Start Screen](docs/start_screen.png) | ![Game Board](docs/game_board.png) |
-
-| Valid Moves Highlight | Game Over Screen |
-|---|---|
-| ![Valid Moves](docs/valid_moves.png) | ![End Screen](docs/end_screen.png) |
+| ![Start Screen](Screenshot/MainMenu.PNG) | ![Game Board](Screenshot/Game.PNG) |
 
 ---
 
