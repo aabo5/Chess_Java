@@ -108,21 +108,5 @@ The clients and server communicate using plain-text message tokens terminated by
 
 ---
 
-## 🛠️ Troubleshooting
-
-### 1. "Connected to a non-chess server" Dialog
-* **Why**: Another application on your computer (like Flask, Docker, AirPlay Receiver, or a node server) is already using port `5000` or `5007`.
-* **Fix**: Change the **Communication Port** input field on the Start Screen to an unused port (e.g. `5001`, `55555`, etc.) and click **Host Game** on both clients.
-
-### 2. "Connection Refused"
-* **Why**: The client is trying to join a server, but no server is hosting on that IP/port.
-* **Fix**: Ensure that the Host client has clicked **Host Game** first before the Join client attempts to connect.
-
-### 3. Piece Characters Render as Blocks
-* **Why**: Some operating systems do not include a default font supporting Chess Unicode glyphs.
-* **Fix**: The game includes a `FontManager` that attempts to download custom fonts (`SpaceGrotesk`, `JetBrainsMono`) from Google Fonts upon launch. Make sure your internet connection is active during the first launch so these fonts can be cached under `~/.chess_terminal_cache`.
-
----
-
 ## 📄 License
 This project is open-source and available under the [MIT License](LICENSE).
